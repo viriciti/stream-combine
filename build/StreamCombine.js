@@ -127,7 +127,8 @@ StreamCombine = (function(_super) {
           return function(index) {
             return _this.current[index];
           };
-        })(this))
+        })(this)),
+        indexes: this.indexes
       };
       send[this.key] = this.lowest;
       result = this.push(send);

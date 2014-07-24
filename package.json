@@ -1,6 +1,6 @@
 {
   "name": "stream-combine",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Merges chronological time-based object streams, using a common key for time.",
   "repository": {
     "type": "git",

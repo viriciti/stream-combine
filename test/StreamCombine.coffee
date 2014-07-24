@@ -59,7 +59,7 @@ describe 'StreamCombine', ->
 			it 'should be equal as expected', (done) ->
 				series   = [[ { id: 1, 11 }, { id: 2, 12 }, { id: 3, 13 }, { id: 4, 14 }, { id: 5, 15 } ]]
 
-				expected = '{"data":[{"11":11,"id":1}],"id":1}{"data":[{"12":12,"id":2}],"id":2}{"data":[{"13":13,"id":3}],"id":3}{"data":[{"14":14,"id":4}],"id":4}{"data":[{"15":15,"id":5}],"id":5}'
+				expected = '{"data":[{"11":11,"id":1}],"indexes":[0],"id":1}{"data":[{"12":12,"id":2}],"indexes":[0],"id":2}{"data":[{"13":13,"id":3}],"indexes":[0],"id":3}{"data":[{"14":14,"id":4}],"indexes":[0],"id":4}{"data":[{"15":15,"id":5}],"indexes":[0],"id":5}'
 
 				checkSeries series, expected, done
 
@@ -69,7 +69,7 @@ describe 'StreamCombine', ->
 				series.push [ { id: 1, 11 }, { id: 2, 12 }, { id: 3, 13 }, { id: 4, 14 }, { id: 5, 15 } ]
 				series.push [ { id: 1, 11 }, { id: 2, 12 }, { id: 3, 13 }, { id: 4, 14 }, { id: 5, 15 } ]
 
-				expected = '{"data":[{"11":11,"id":1},{"11":11,"id":1}],"id":1}{"data":[{"12":12,"id":2},{"12":12,"id":2}],"id":2}{"data":[{"13":13,"id":3},{"13":13,"id":3}],"id":3}{"data":[{"14":14,"id":4},{"14":14,"id":4}],"id":4}{"data":[{"15":15,"id":5},{"15":15,"id":5}],"id":5}'
+				expected = '{"data":[{"11":11,"id":1},{"11":11,"id":1}],"indexes":[0,1],"id":1}{"data":[{"12":12,"id":2},{"12":12,"id":2}],"indexes":[0,1],"id":2}{"data":[{"13":13,"id":3},{"13":13,"id":3}],"indexes":[0,1],"id":3}{"data":[{"14":14,"id":4},{"14":14,"id":4}],"indexes":[0,1],"id":4}{"data":[{"15":15,"id":5},{"15":15,"id":5}],"indexes":[0,1],"id":5}'
 
 				checkSeries series, expected, done
 
@@ -79,6 +79,6 @@ describe 'StreamCombine', ->
 				series.push [ { id: 1, 11 }, { id: 2, 12 }, { id: 3, 13 },                { id: 5, 15 }                ]
 				series.push [                { id: 2, 12 }, { id: 3, 13 }, { id: 4, 14 }, { id: 5, 15 }, { id: 5, 15 } ]
 
-				expected = '{"data":[{"11":11,"id":1}],"id":1}{"data":[{"12":12,"id":2},{"12":12,"id":2}],"id":2}{"data":[{"13":13,"id":3},{"13":13,"id":3}],"id":3}{"data":[{"14":14,"id":4}],"id":4}{"data":[{"15":15,"id":5},{"15":15,"id":5}],"id":5}{"data":[{"15":15,"id":5}],"id":5}'
+				expected = '{"data":[{"11":11,"id":1}],"indexes":[0],"id":1}{"data":[{"12":12,"id":2},{"12":12,"id":2}],"indexes":[0,1],"id":2}{"data":[{"13":13,"id":3},{"13":13,"id":3}],"indexes":[0,1],"id":3}{"data":[{"14":14,"id":4}],"indexes":[1],"id":4}{"data":[{"15":15,"id":5},{"15":15,"id":5}],"indexes":[0,1],"id":5}{"data":[{"15":15,"id":5}],"indexes":[1],"id":5}'
 
 				checkSeries series, expected, done

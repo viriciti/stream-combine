@@ -67,7 +67,9 @@ class StreamCombine extends Readable
 		@indexes = @getLowestKeyIndexes()
 
 		if @indexes.length
-			send = data: _.map @indexes, (index) => @current[index]
+			send =
+				data:    _.map @indexes, (index) => @current[index]
+				indexes: @indexes
 			send[@key] = @lowest
 
 			result = @push send

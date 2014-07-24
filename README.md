@@ -1,4 +1,4 @@
 stream-combine
 ==============
 
-Merges time-based streams
+Merges chronological time-based streams.
