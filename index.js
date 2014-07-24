@@ -1,1 +1,1 @@
-module.exports = require('build/StreamCombine');
+module.exports = require('./build/StreamCombine');
