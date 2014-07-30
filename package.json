@@ -17,9 +17,12 @@
   "author": "ViriCiti",
   "license": "ISC",
   "devDependencies": {
+    "async": "^0.9.0",
     "coffee-script": "^1.7.1",
     "gulp": "^3.8.6",
-    "id-project": "^2.0.2"
+    "id-project": "^2.0.2",
+    "mongodb": "^1.4.7",
+    "underscore": "^1.6.0"
   },
   "dependencies": {
     "id-debug": "^1.2.0",
