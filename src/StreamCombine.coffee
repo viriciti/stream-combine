@@ -20,8 +20,9 @@ class StreamCombine extends Readable
 
 		for stream, index in @streams
 			do (stream, index) =>
-				stream.on 'data', @handleData.bind @, index
-				stream.on 'end',  @handleEnd.bind  @, index
+				stream.on 'data',  @handleData.bind  @, index
+				stream.on 'end',   @handleEnd.bind   @, index
+				stream.on 'error', (error) => @emit 'error', error
 
 	_read: ->
 		log.debug 'StreamCombine#_read'
@@ -94,6 +95,5 @@ class StreamCombine extends Readable
 		@evaluatePush()
 
 		@push null if _.every @ended, _.identity
-
 
 module.exports = StreamCombine
