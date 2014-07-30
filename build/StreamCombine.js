@@ -56,7 +56,10 @@ StreamCombine = (function(_super) {
     _fn = (function(_this) {
       return function(stream, index) {
         stream.on('data', _this.handleData.bind(_this, index));
-        return stream.on('end', _this.handleEnd.bind(_this, index));
+        stream.on('end', _this.handleEnd.bind(_this, index));
+        return stream.on('error', function(error) {
+          return _this.emit('error', error);
+        });
       };
     })(this);
     for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
