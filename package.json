@@ -1,6 +1,6 @@
 {
   "name": "stream-combine",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "Merges chronological time-based object streams, using a common key for time.",
   "repository": {
     "type": "git",
@@ -8,11 +8,12 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Use `culp --require coffee-script/register` instead\" && exit 1"
+    "test": "echo \"Use `gulp` instead\" && exit 1"
   },
   "keywords": [
     "stream",
-    "combine"
+    "combine",
+    "merge"
   ],
   "author": "ViriCiti",
   "license": "ISC",
