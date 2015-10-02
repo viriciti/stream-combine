@@ -1,87 +1,90 @@
-var Readable, StreamCombine, log, _,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+var Readable, StreamCombine, _,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
-_ = require('underscore');
+_ = require("underscore");
 
-log = require('id-debug');
+Readable = require("stream").Readable;
 
-Readable = require('stream').Readable;
-
-StreamCombine = (function(_super) {
-  __extends(StreamCombine, _super);
+StreamCombine = (function(superClass) {
+  extend(StreamCombine, superClass);
 
   function StreamCombine(streams, key) {
-    var index, stream, _fn, _i, _len, _ref;
+    var fn, i, index, j, len, ref, ref1, results, stream;
     this.streams = streams;
     this.key = key;
-    log.debug('StreamCombine#constructor');
     StreamCombine.__super__.constructor.call(this, {
       objectMode: true
     });
     if (!this.streams) {
-      throw new Error('Streams argument is required');
+      throw new Error("Streams argument is required");
     }
     if (!Array.isArray(this.streams)) {
-      throw new Error('Streams should be an Array');
+      throw new Error("Streams should be an Array");
     }
     if (!this.streams.length) {
-      throw new Error('Streams array should not be empty');
+      throw new Error("Streams array should not be empty");
     }
-    if (!this.key) {
-      throw new Error('Key argument is required');
+    if (this.key == null) {
+      throw new Error("Key argument is required");
     }
     this.ended = (function() {
-      var _i, _len, _ref, _results;
-      _ref = this.streams;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        stream = _ref[_i];
-        _results.push(false);
+      var i, len, ref, results;
+      ref = this.streams;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        stream = ref[i];
+        results.push(false);
       }
-      return _results;
+      return results;
     }).call(this);
     this.current = (function() {
-      var _i, _len, _ref, _results;
-      _ref = this.streams;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        stream = _ref[_i];
-        _results.push(null);
+      var i, len, ref, results;
+      ref = this.streams;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        stream = ref[i];
+        results.push(null);
       }
-      return _results;
+      return results;
     }).call(this);
-    this.indexes = [];
-    _ref = this.streams;
-    _fn = (function(_this) {
+    this.indexes = (function() {
+      results = [];
+      for (var i = 0, ref = this.streams.length; 0 <= ref ? i < ref : i > ref; 0 <= ref ? i++ : i--){ results.push(i); }
+      return results;
+    }).apply(this);
+    this.busy = false;
+    ref1 = this.streams;
+    fn = (function(_this) {
       return function(stream, index) {
-        stream.on('data', _this.handleData.bind(_this, index));
-        stream.on('end', _this.handleEnd.bind(_this, index));
-        return stream.on('error', function(error) {
-          return _this.emit('error', error);
+        stream.on("error", function(error) {
+          return _this.emit("error", error);
         });
+        stream.on("end", _this.handleEnd.bind(_this, index));
+        return stream.on("data", _this.handleData.bind(_this, index));
       };
     })(this);
-    for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-      stream = _ref[index];
-      _fn(stream, index);
+    for (index = j = 0, len = ref1.length; j < len; index = ++j) {
+      stream = ref1[index];
+      fn(stream, index);
     }
   }
 
   StreamCombine.prototype._read = function() {
-    log.debug('StreamCombine#_read');
-    this.resumeStreams(this.indexes);
-    return this.indexes = [];
+    if (this.busy) {
+      return;
+    }
+    this.busy = true;
+    return this.resumeStreams();
   };
 
   StreamCombine.prototype.getLowestKeyIndexes = function() {
-    var index, keys, object, skip, _i, _len, _ref;
-    log.debug('StreamCombine#getLowestKeyIndexes');
+    var i, index, keys, len, object, ref, skip;
     keys = [];
     skip = false;
-    _ref = this.current;
-    for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-      object = _ref[index];
+    ref = this.current;
+    for (index = i = 0, len = ref.length; i < len; index = ++i) {
+      object = ref[index];
       if (object) {
         keys[index] = object[this.key];
       } else {
@@ -108,52 +111,59 @@ StreamCombine = (function(_super) {
     }).value();
   };
 
-  StreamCombine.prototype.resumeStreams = function(indexes) {
-    var index, _i, _len, _results;
-    log.debug('StreamCombine#resumeStreams');
-    _results = [];
-    for (_i = 0, _len = indexes.length; _i < _len; _i++) {
-      index = indexes[_i];
+  StreamCombine.prototype.resumeStreams = function() {
+    var i, index, len, reEvaluatePush, ref;
+    reEvaluatePush = false;
+    ref = this.indexes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      index = ref[i];
       this.current[index] = null;
-      _results.push(this.streams[index].resume());
+      if (this.ended[index]) {
+        if (!reEvaluatePush) {
+          reEvaluatePush = true;
+        }
+      } else {
+        this.streams[index].resume();
+      }
     }
-    return _results;
+    if (reEvaluatePush) {
+      return this.evaluatePush();
+    }
   };
 
   StreamCombine.prototype.evaluatePush = function() {
-    var result, send;
-    log.debug('StreamCombine#evaluatePush');
+    var pushMore, send;
     this.indexes = this.getLowestKeyIndexes();
-    if (this.indexes.length) {
-      send = {
-        data: _.map(this.indexes, (function(_this) {
-          return function(index) {
-            return _this.current[index];
-          };
-        })(this)),
-        indexes: this.indexes
-      };
-      send[this.key] = this.lowest;
-      result = this.push(send);
-      if (result) {
-        this.resumeStreams(this.indexes);
-        return this.indexes = [];
-      }
+    if (!this.indexes.length) {
+      return;
     }
+    send = {
+      data: _.map(this.indexes, (function(_this) {
+        return function(index) {
+          return _this.current[index];
+        };
+      })(this)),
+      indexes: this.indexes
+    };
+    send[this.key] = this.lowest;
+    pushMore = this.push(send);
+    if (!pushMore) {
+      this.busy = false;
+      return;
+    }
+    return this.resumeStreams();
   };
 
   StreamCombine.prototype.handleData = function(index, object) {
-    log.debug('StreamCombine#handleData');
     this.streams[index].pause();
     this.current[index] = object;
     return this.evaluatePush();
   };
 
   StreamCombine.prototype.handleEnd = function(index) {
-    log.debug('StreamCombine#handleEnd');
     this.ended[index] = true;
     this.evaluatePush();
-    if (_.every(this.ended, _.identity)) {
+    if (_.every(this.ended)) {
       return this.push(null);
     }
   };

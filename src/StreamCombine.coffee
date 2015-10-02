@@ -1,38 +1,35 @@
-_            = require 'underscore'
-log          = require 'id-debug'
-{ Readable } = require 'stream'
+_            = require "underscore"
+{ Readable } = require "stream"
 
 class StreamCombine extends Readable
 
 	constructor: (@streams, @key) ->
-		log.debug 'StreamCombine#constructor'
-
 		super objectMode: true
 
-		throw new Error 'Streams argument is required'      unless @streams
-		throw new Error 'Streams should be an Array'        unless Array.isArray @streams
-		throw new Error 'Streams array should not be empty' unless @streams.length
-		throw new Error 'Key argument is required'          unless @key
+		throw new Error "Streams argument is required"      unless @streams
+		throw new Error "Streams should be an Array"        unless Array.isArray @streams
+		throw new Error "Streams array should not be empty" unless @streams.length
+		throw new Error "Key argument is required"          unless @key?
 
 		@ended   = (false for stream in @streams)
 		@current = (null  for stream in @streams)
-		@indexes = []
+		@indexes = [0...@streams.length]
+		@busy    = false
 
 		for stream, index in @streams
 			do (stream, index) =>
-				stream.on 'data',  @handleData.bind  @, index
-				stream.on 'end',   @handleEnd.bind   @, index
-				stream.on 'error', (error) => @emit 'error', error
+				stream.on "error", (error) => @emit "error", error
+				stream.on "end",   @handleEnd.bind   @, index
+				stream.on "data",  @handleData.bind  @, index
 
 	_read: ->
-		log.debug 'StreamCombine#_read'
+		return if @busy
 
-		@resumeStreams @indexes
-		@indexes = []
+		@busy = true
+
+		@resumeStreams()
 
 	getLowestKeyIndexes: ->
-		log.debug 'StreamCombine#getLowestKeyIndexes'
-
 		keys = []
 		skip = false
 
@@ -55,45 +52,47 @@ class StreamCombine extends Readable
 			.filter (index)         -> index?
 			.value()
 
-	resumeStreams: (indexes) ->
-		log.debug 'StreamCombine#resumeStreams'
+	resumeStreams: ->
+		reEvaluatePush = false
 
-		for index in indexes
+		for index in @indexes
 			@current[index] = null
-			@streams[index].resume()
+			if @ended[index]
+				reEvaluatePush = true unless reEvaluatePush
+			else
+				@streams[index].resume()
+
+		@evaluatePush() if reEvaluatePush
 
 	evaluatePush: ->
-		log.debug 'StreamCombine#evaluatePush'
-
 		@indexes = @getLowestKeyIndexes()
 
-		if @indexes.length
-			send =
-				data:    _.map @indexes, (index) => @current[index]
-				indexes: @indexes
-			send[@key] = @lowest
+		return unless @indexes.length
 
-			result = @push send
+		send =
+			data:    _.map @indexes, (index) => @current[index]
+			indexes: @indexes
+		send[@key] = @lowest
 
-			if result
-				@resumeStreams @indexes
-				@indexes = []
+		pushMore = @push send
+
+		unless pushMore
+			@busy = false
+			return
+
+		@resumeStreams()
 
 	handleData: (index, object) ->
-		log.debug 'StreamCombine#handleData'
-
 		@streams[index].pause()
 		@current[index] = object
 
 		@evaluatePush()
 
 	handleEnd: (index) ->
-		log.debug 'StreamCombine#handleEnd'
-
 		@ended[index] = true
 
 		@evaluatePush()
 
-		@push null if _.every @ended, _.identity
+		@push null if _.every @ended
 
 module.exports = StreamCombine
