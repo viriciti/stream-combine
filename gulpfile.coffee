@@ -1,11 +1,10 @@
-require('id-project')
-	browserify:    false
-	clean:         true
-	coffee:        true
-	copy:          false
-	documentation: false
-	less:          false
-	livereload:    false
-	nodemon:       false
-	tests:         true
-	watch:         true
+(require "coffee-project")
+	documentation: enabled: false
+	livereload:    enabled: false
+	browserify:    enabled: true
+	less:          enabled: true
+	clean:         enabled: true
+	copy:          enabled: true
+	watch:         enabled: true
+	forever:       enabled: false
+	tests:         enabled: true
