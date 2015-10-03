@@ -32,7 +32,6 @@ Or in flowing mode, with example of output object structure:
   console.log data
   # emits objects like
   # {
-  #   _id:     6
   #   indexes: [0, 2] 
   #   data:    [ { _id: 6, some-data-from-time-series-1 }, { _id: 6, some-data-from-time-series-3 } ]
   # }
