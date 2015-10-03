@@ -33,12 +33,13 @@ Or in flowing mode, with example of output object structure:
   # emits objects like
   # {
   #   _id:     6
-  #   indexes: [2, 3] 
-  #   data:    [ { _id: 6, some-data-from-time-series-2 }, { _id: 6, some-data-from-time-series-3 } ]
+  #   indexes: [0, 2] 
+  #   data:    [ { _id: 6, some-data-from-time-series-1 }, { _id: 6, some-data-from-time-series-3 } ]
   # }
   # ...
 ```
 where:
+
 `_id` is the common time stamp of the next object in chronological order
 
 `indexes` is the indexes of the streams that have the current time in common
