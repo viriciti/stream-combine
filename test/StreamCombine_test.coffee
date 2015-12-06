@@ -1,8 +1,8 @@
-_               = require "underscore"
-assert          = require "assert"
-async           = require "async"
-{ Readable }    = require "stream"
-{ MongoClient } = require "mongodb"
+_                      = require "underscore"
+assert                 = require "assert"
+async                  = require "async"
+{ MongoClient }        = require "mongodb"
+{ Readable, Writable } = require "stream"
 
 StreamCombine = require "../src/StreamCombine"
 
@@ -13,6 +13,16 @@ class TestStream extends Readable
 		@push null
 
 	_read: ->
+
+class SlowWritableStream extends Writable
+	constructor: ->
+		super objectMode: true
+
+	_write: (obj, encoding, cb) ->
+		setTimeout =>
+			@emit "obj"
+			cb()
+		, 1
 
 checkSeries = (series, expected, done) ->
 	str = ""
@@ -172,6 +182,27 @@ describe "StreamCombine", ->
 				sb.on "data", (data) ->
 				sb.on "end", ->
 					done()
+
+	describe "piped stream", ->
+		describe "handle it - slow writable", ->
+			it "should work with flat linear", (done) ->
+				@timeout 5000
+
+				series = []
+				for i in [1..8]
+					series.push randomTestData()
+
+				sc = new StreamCombine (new TestStream serie for serie in series), "_id"
+				sw = new SlowWritableStream
+
+				count = 0
+
+				sw.on "obj", ->
+					if ++count is 2000
+						sc.unpipe()
+						done()
+
+				sc.pipe sw
 
 	describe "mongodb cursor streams", ->
 
