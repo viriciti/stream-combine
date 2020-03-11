@@ -1,6 +1,4 @@
-_                      = require "underscore"
 assert                 = require "assert"
-async                  = require "async"
 { MongoClient }        = require "mongodb"
 { Readable, Writable } = require "stream"
 
@@ -209,76 +207,52 @@ describe "StreamCombine", ->
 		count           = 0
 		now             = null
 		database        = null
+		client          = null
 		collectionNames = ("test-#{i}" for i in [1..10])
 
-		before (done) ->
+		before ->
 			@timeout 10000
 
-			MongoClient.connect "mongodb://localhost:27017/stream-combine-test", (error, db) ->
-				throw error if error
+			client = await MongoClient.connect "mongodb://localhost:27017", useUnifiedTopology: true 
+			database = client.db "stream-combine-test"
 
-				database = db
+			insertTestData = (collectionName, cb) ->
+				testData = randomTestData()
+				collection = await database.collection collectionName
+				await collection.deleteMany {}
+				await collection.insertMany testData
 
-				insertTestData = (collectionName, cb) ->
-					testData = randomTestData()
-					# console.log "Inserting #{testData.length} documents into collection #{collectionName}..."
+			await Promise.all (insertTestData collectionName for collectionName in collectionNames)
 
-					database.collection collectionName, (error, collection) ->
-						return cb error if error
+			now = Date.now()
 
-						collection.remove {}, (error) ->
-							return cb error if error
+		after ->
+			@timeout 10000
 
-							collection.insertMany testData, (error) ->
-								return cb error if error
+			await database.dropDatabase
 
-								# console.log "Done."
+			client.close()
 
-								cb()
+		it "stream all collections combined", (done) ->
+			@timeout 10000
 
-				async.each collectionNames, insertTestData, (error) ->
-					throw error if error
+			addCollectionStream = (collectionName) ->
+				collection = await database.collection collectionName
+				collection.find().stream()
 
-					now = Date.now()
-					console.log "inserted"
+			Promise
+			.all (addCollectionStream collectionName for collectionName in collectionNames)
+			.then (streams) ->
 
+				sb = new StreamCombine streams, "_id"
+
+				sb.on "data",  (data) -> count++
+				
+				sb.on "error", (error) -> throw error
+				
+				sb.on "end", ->
+					seconds = (Date.now() - now) / 1000
+					console.log "#{seconds.toFixed 2} s, #{count} elements, #{(10000 / seconds).toFixed 2} elements/s"
 					done()
 
-		after (done) ->
-			@timeout 10000
-
-			database.dropDatabase (error) ->
-				throw error if error
-
-				database.close()
-
-				done()
-
-		describe "stream all collections", ->
-			it "should work", (done) ->
-				@timeout 10000
-
-				streams = []
-
-				addCollectionStream = (collectionName, cb) ->
-					database.collection collectionName, (error, collection) ->
-						return cb error if error
-
-						streams.push collection.find().stream()
-
-						cb()
-
-				async.each collectionNames, addCollectionStream, (error) ->
-					throw error if error
-
-					sb  = new StreamCombine streams, "_id"
-					sb.on "data",  (data) ->
-						count++
-						# console.log data
-					sb.on "error", (error) -> throw error
-					sb.on "end", ->
-						seconds = (Date.now() - now) / 1000
-						console.log "#{seconds.toFixed 2} s, #{count} elements, #{(10000 / seconds).toFixed 2} elements/s"
-						done()
-
-
+			return null
