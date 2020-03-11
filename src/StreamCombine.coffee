@@ -1,4 +1,3 @@
-_            = require "underscore"
 { Readable } = require "stream"
 
 class StreamCombine extends Readable
@@ -45,13 +44,12 @@ class StreamCombine extends Readable
 
 		return [] if skip
 
-		@lowest = _.min keys
+		@lowest = Math.min keys...
 
-		_.chain @current
+		@current
 			.map    (object, index) => index if object and object[@key] is @lowest
 			.filter (index)         -> index?
-			.value()
-
+		
 	resumeStreams: ->
 		reEvaluatePush = false
 
@@ -70,7 +68,7 @@ class StreamCombine extends Readable
 		return unless @indexes.length
 
 		send =
-			data:    _.map @indexes, (index) => @current[index]
+			data:    @indexes.map (index) => @current[index]
 			indexes: @indexes
 		send[@key] = @lowest
 
@@ -93,6 +91,6 @@ class StreamCombine extends Readable
 
 		@evaluatePush()
 
-		@push null if _.every @ended
+		@push null if @ended.every (x) -> x is true
 
 module.exports = StreamCombine

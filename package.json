@@ -8,7 +8,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Use `gulp` instead\" && exit 1"
+    "test": "mocha --require coffeescript/register 'test/*.coffee' --exit",
+    "compile": "coffee --output build --compile src"
   },
   "keywords": [
     "stream",
@@ -18,13 +19,8 @@
   "author": "ViriCiti",
   "license": "ISC",
   "devDependencies": {
-    "async": "^1.4.2",
-    "coffee-project": "^1.2.3",
-    "coffee-script": "^1.9.2",
-    "gulp": "^3.8.11",
-    "mongodb": "^2.0.45"
-  },
-  "dependencies": {
-    "underscore": "^1.8.3"
+    "coffeescript": "^2.5.1",
+    "mocha": "^7.1.0",
+    "mongodb": "^3.5.4"
   }
 }
