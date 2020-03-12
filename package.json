@@ -1,5 +1,5 @@
 {
-  "name": "@tn-group/stream-combine",
+  "name": "stream-combine",
   "version": "2.1.1",
   "description": "Merges chronological time-based object streams, using a common key for time.",
   "repository": {
